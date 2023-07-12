@@ -1,14 +1,20 @@
 package App;
 
-import java.util.UUID;
-
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 
 import Entities.Evento;
+import Entities.Location;
+import Entities.Partecipazione;
+import Entities.Persona;
+import Entities.Sesso;
+import Entities.Stato;
 import Entities.TipoEvento;
 import utils.EventiDAO;
 import utils.JpaUtil;
+import utils.LocationDAO;
+import utils.PartecipazioniDAO;
+import utils.PersonaDAO;
 
 public class Application {
 	private static EntityManagerFactory emf = JpaUtil.getEntityManagerFactory();
@@ -17,27 +23,37 @@ public class Application {
 		EntityManager em = emf.createEntityManager();
 		System.out.println("Siamo pronti");
 
-		Evento estivo = new Evento("IanniceComeUnaScimmia", "2023-05-25", "GaradeScoreggie", TipoEvento.PRIVATO,
-				"Max 5000ps");
-		EventiDAO ev = new EventiDAO(em);
+		// DAO variables
+		PersonaDAO pd = new PersonaDAO(em);
+		LocationDAO lt = new LocationDAO(em);
+		EventiDAO vt = new EventiDAO(em);
+		PartecipazioniDAO pt = new PartecipazioniDAO(em);
 
 		// --------------------SAVE-----------------------------
+		Persona luca = new Persona("Manuel", "Centini", "manu@libero.it", "1993-04-30", Sesso.MASCHIO);
+		pd.save(luca);
+		System.out.println();
 
-		ev.save(estivo);
+		Location country = new Location("Centro Congressi", "Roma");
+		lt.save(country);
+		System.out.println();
 
-		// ---------------------FIND BY ID------------------------
+		Evento fut = new Evento("Parlamento", "2018-05-01", "Voti", country, TipoEvento.PRIVATO, "250");
+		vt.save(fut);
+		System.out.println();
 
-		Evento moveTheCol = ev.findById(UUID.fromString("5a01dea4-f217-480f-8a41-248f85107bde"));
-		System.out.println(moveTheCol);
+		Partecipazione ptc = new Partecipazione();
+		ptc.setPersona(luca);
+		ptc.setEvento(fut);
+		ptc.setStato(Stato.CONFERMATA);
 
-		// ----------------------DELETE----------------------------
+		fut.getPartecipazioni().add(ptc);
 
-		ev.findByIdandDelete(UUID.fromString("1ddce1ef-5fd0-4202-a7b8-1c4756f84248"));
+		fut.setLocation(country);
 
-		// -----------------------REFRESH---------------------------
-		ev.refresh(UUID.fromString("6bd97b7f-c935-44e8-826e-c25fd913476a"));
+		pt.save(ptc);
 
-		em.close();
-		emf.close();
+		// em.close();
+		// emf.close();
 	}
 }
